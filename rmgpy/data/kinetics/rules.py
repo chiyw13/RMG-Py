@@ -582,7 +582,7 @@ class KineticsRules(Database):
             E0 = (E0*0.001,"kJ/mol"),
         )
         return averagedKinetics
-                
+    
     def estimateKinetics(self, template, degeneracy=1):
         """
         Determine the appropriate kinetics for a reaction with the given
@@ -653,14 +653,13 @@ class KineticsRules(Database):
             for i in xrange(len(templateList0)):
                 template0 = templateList0[i]
                 for index in xrange(len(template0)):
-                    dist = distanceList0[i]
-                    if not template0[index].parent:
-                        # We're at the top-level node in this subtreee
+                    if not template0[index].parent: # We're at the top-level node in this subtreee
                         continue
+                    dist = deepcopy(distanceList0[i])
+                    t = deepcopy(template0)
                     dist[index] += t[index].nodalDistance
-                    t = template0[:]
                     t[index] = t[index].parent
-                         
+                     
                     if t not in templateList:
                         templateList.append(t)
                         distanceList.append(dist)
@@ -668,7 +667,7 @@ class KineticsRules(Database):
             if templateList != [] and minNorm != 0:
                 continue
             
-        kineticsList = savedKinetics
+        kineticsList = removeIdenticalKinetics(savedKinetics)
         
         if len(kineticsList) == 0:
             raise KineticsError('Unable to determine kinetics for reaction with template {0} in family {1}.'.format(template, self.label))
@@ -710,4 +709,22 @@ class KineticsRules(Database):
             kinetics.comment += "Multiplied by reaction path degeneracy {0}".format(degeneracy)
 
         return kinetics, entry if 'Exact' in kinetics.comment else None
-        
+
+def removeIdenticalKinetics(kList):
+    """
+    doing this based on strings, which should be fine for this specifically, since we shouldn't have any
+    identical kinetics entries in the families all of the identical kinetics should look exactly the same
+    faster than the alternative
+    """
+    outSet = set()
+    outList = []
+    for i in xrange(len(kList)):
+        k = kList[i]
+        sk = str(k)
+        if sk in outSet:
+            continue
+        else:
+            outSet.add(sk)
+            outList.append(k)
+            
+    return outList
