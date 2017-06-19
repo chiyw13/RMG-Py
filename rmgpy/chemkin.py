@@ -1829,7 +1829,7 @@ def saveChemkinFile(path, species, reactions, verbose = True, checkForDuplicates
             f.write(writeKineticsEntry(rxn, speciesList=species, verbose=verbose))
         else:
             for index, line in enumerate(string_split):
-                if 'Estimated using template' in line:
+                if 'Estimated using' in line:
                     index_e = index
                     break
                 else:
